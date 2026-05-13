@@ -1,0 +1,89 @@
+# --- Dependencias (reinstalar con npm install) ---
+node_modules/
+**/node_modules/
+
+# --- Build / salida de compilación (regenerar con npm run build o Docker) ---
+dist/
+**/dist/
+build/
+**/build/
+out/
+**/out/
+*.tsbuildinfo
+
+# Vite / bundlers
+.cache/
+**/.cache/
+.vite/
+**/.vite/
+.parcel-cache/
+.turbo/
+
+# --- Variables de entorno (secretos; no subir) ---
+.env
+.env.*
+!.env.example
+
+# --- Logs y depuración ---
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# --- Pruebas / cobertura ---
+coverage/
+**/coverage/
+.nyc_output/
+**/.nyc_output/
+*.lcov
+
+# --- Cachés de linters / formatters ---
+.eslintcache
+.prettiercache
+.stylelintcache
+
+# --- Certificados y claves locales ---
+*.pem
+*.key
+*.p12
+*.pfx
+
+# --- SO ---
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# --- IDE / editores ---
+.idea/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*~
+
+# VS Code (ajustes personales; conservar extensions.json si lo usan en equipo)
+.vscode/*
+!.vscode/extensions.json
+
+# Cursor (quita esta línea si quieren versionar algo de .cursor)
+.cursor/
+
+# --- Docker (overrides solo en tu PC) ---
+docker-compose.override.yml
+
+# --- Empaquetados temporales ---
+*.tgz
+*.tar.gz
+
+# --- Otros ---
+*.local
+tmp/
+temp/
