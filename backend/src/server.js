@@ -52,13 +52,92 @@ const EVENT_KNOWN_FIELDS = new Set([
   "status",
   "message",
   "payload",
-  "eventTimestamp"
+  "eventTimestamp",
+  // Alias planos que puede enviar el Arduino por WiFi (se mueven a payload)
+  "command",
+  "robotResponse",
+  "cmd",
+  "result"
 ]);
+
+function inferActionTypeFromCommand(command) {
+  if (!command || typeof command !== "string") return "";
+  const type = command.split("|")[0].trim().toUpperCase();
+  const map = {
+    TEST: "TEST",
+    TEST_ALL: "TEST_ALL",
+    TXT: "DISPLAY_TEXT",
+    REM: "REMINDER_SAVE",
+    EDIT: "REMINDER_EDIT",
+    DEL: "REMINDER_DELETE",
+    CLR: "REMINDER_CLEAR",
+    LIST: "REMINDER_LIST",
+    LIST_FULL: "REMINDER_LIST_FULL",
+    STATUS: "ROBOT_STATUS",
+    GET_LOGS: "GET_LOGS",
+    WALK: "ROBOT_WALK",
+    WALK_STRONG: "ROBOT_WALK_STRONG"
+  };
+  return map[type] || type || "";
+}
+
+function normalizeIncomingEvent(body) {
+  const normalized = { ...body };
+
+  const payload =
+    normalized.payload !== undefined &&
+    normalized.payload !== null &&
+    typeof normalized.payload === "object" &&
+    !Array.isArray(normalized.payload)
+      ? { ...normalized.payload }
+      : normalized.payload !== undefined && normalized.payload !== null
+        ? { value: normalized.payload }
+        : {};
+
+  const flatCommand = normalized.command || normalized.cmd;
+  const flatResult = normalized.robotResponse || normalized.result;
+
+  if (flatCommand && payload.command === undefined) payload.command = flatCommand;
+  if (flatResult && payload.robotResponse === undefined) payload.robotResponse = flatResult;
+
+  normalized.payload = payload;
+
+  if (!normalized.source) normalized.source = "robot";
+
+  const deviceId = normalized.deviceId ? String(normalized.deviceId) : "";
+  const fromRobot =
+    normalized.source === "robot" ||
+    /arduino|robot|ottobot/i.test(deviceId);
+
+  if ((!normalized.channel || normalized.channel === "unknown") && fromRobot) {
+    normalized.channel = "wifi";
+  }
+
+  const currentActionType =
+    typeof normalized.actionType === "string"
+      ? normalized.actionType.trim()
+      : normalized.actionType
+        ? String(normalized.actionType).trim()
+        : "";
+
+  if (!currentActionType && flatCommand) {
+    normalized.actionType = inferActionTypeFromCommand(String(flatCommand));
+  }
+
+  if (!normalized.status || normalized.status === "unknown") {
+    const response = String(flatResult || payload.robotResponse || "");
+    if (response.startsWith("OK")) normalized.status = "executed";
+    else if (response.startsWith("ERR")) normalized.status = "failed";
+  }
+
+  return normalized;
+}
 
 app.post("/events", async (req, res) => {
   console.log("Cuerpo recibido:", req.body);
 
-  const body = req.body && typeof req.body === "object" ? req.body : {};
+  const rawBody = req.body && typeof req.body === "object" ? req.body : {};
+  const body = normalizeIncomingEvent(rawBody);
   const {
     actionType,
     source,

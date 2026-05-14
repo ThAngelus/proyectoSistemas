@@ -17,14 +17,26 @@ En desarrollo local con Docker en Windows, el frontend se expone en **http://loc
 
 ## 2) Diseno de arquitectura del sistema
 
-Flujo principal:
+El log central acepta eventos por **dos caminos** (flexibles, no excluyentes):
 
-1. App movil Flutter envia instrucciones al robot Arduino Nano 33 por BLE.
-2. El dashboard/servidor encola comandos para el robot usando `POST /commands`.
-3. La app Flutter (puente BLE) consume comandos con `GET /commands/pending?deviceId=...`, los envia al Arduino y responde con `POST /commands/:id/ack`.
-4. La app Flutter tambien reporta cada instruccion y resultado como evento con `POST /events`.
-5. El backend registra comandos y eventos en MongoDB.
-6. El frontend consulta al backend y muestra dashboard.
+1. **Arduino Nano 33 IoT por WiFi** — `POST /events` directo a `http://<IP_SERVIDOR>:3000/events` (sin app).
+2. **App Flutter (opcional)** — BLE al robot y/o reenvio de eventos al mismo endpoint.
+3. **Dashboard web (opcional)** — encola comandos con `POST /commands` para que Flutter los ejecute por BLE.
+
+Flujo tipico con robot autonomo (sin app):
+
+1. El Arduino ejecuta una accion (comando BLE local, recordatorio, sensor, etc.).
+2. `WiFiEvents` encola y envia `POST /events` al backend.
+3. MongoDB persiste el evento.
+4. El dashboard muestra el log en tiempo casi real.
+
+Flujo con app movil:
+
+1. Flutter envia instrucciones al robot por BLE.
+2. Flutter tambien puede reportar `POST /events` (o el Arduino lo hace por WiFi en paralelo).
+3. Comandos remotos: dashboard -> `POST /commands` -> Flutter `GET /commands/pending` -> BLE -> `POST /commands/:id/ack`.
+
+Documentacion detallada para el companero de Arduino: `docs/arduino-wifi.md` y plantilla `docs/arduino/WiFiEvents.reference.ino`.
 
 Servicios (mismo servidor Linux):
 
@@ -77,7 +89,21 @@ El proyecto usa **npm** (`package-lock.json`). Tambien puedes usar **pnpm** en l
 - `POST /commands/:id/ack` confirmar ejecucion (`executed`/`failed`) con respuesta del robot
 - `GET /commands` listar comandos recientes
 
-### Ejemplo de evento (lo que debe enviar Flutter)
+### Ejemplo de evento desde Arduino (WiFi, minimo)
+
+```json
+{
+  "actionType": "REMINDER_SAVE",
+  "deviceId": "arduino_nano_33_01",
+  "message": "Recordatorio guardado",
+  "command": "REM|12|2026-05-02|16:30|TOMAR AGUA",
+  "robotResponse": "OK|REMINDER_SAVED"
+}
+```
+
+El backend asigna `source: "robot"` y `channel: "wifi"` si no se envian.
+
+### Ejemplo de evento desde Flutter (BLE, opcional)
 
 ```json
 {
