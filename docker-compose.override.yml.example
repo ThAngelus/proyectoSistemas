@@ -1,9 +1,0 @@
-# Copiar a docker-compose.override.yml en tu PC si el puerto 80 esta ocupado (Windows).
-# Ese archivo no se sube a GitHub.
-#
-#   copy docker-compose.override.yml.example docker-compose.override.yml
-#
-services:
-  frontend:
-    ports:
-      - "8080:80"

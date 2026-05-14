@@ -11,7 +11,16 @@ Sistema de monitoreo de eventos de robotica con arquitectura de tres componentes
 - `http://167.99.155.211` -> Frontend
 - `http://167.99.155.211:3000/health` -> Health backend
 
-En desarrollo local en Windows, si el puerto 80 esta ocupado, copia `docker-compose.override.yml.example` a `docker-compose.override.yml` y el dashboard queda en **http://localhost:8080**.
+En desarrollo local en Windows, si el puerto 80 esta ocupado, crea `docker-compose.override.yml` (no se sube a Git) con:
+
+```yaml
+services:
+  frontend:
+    ports:
+      - "8080:80"
+```
+
+El dashboard local queda en **http://localhost:8080**.
 
 ## 2) Diseno de arquitectura del sistema
 

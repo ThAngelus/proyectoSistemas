@@ -78,7 +78,6 @@ $RECYCLE.BIN/
 
 # --- Docker (overrides solo en tu PC) ---
 docker-compose.override.yml
-!docker-compose.override.yml.example
 
 # --- Empaquetados temporales ---
 *.tgz
