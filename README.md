@@ -8,12 +8,10 @@ Sistema de monitoreo de eventos de robotica con arquitectura de tres componentes
 
 ## 1) Direccion IP publica del servidor
 
-Reemplazar al desplegar:
+- `http://167.99.155.211` -> Frontend
+- `http://167.99.155.211:3000/health` -> Health backend
 
-- `http://<IP_PUBLICA_SERVIDOR>` -> Frontend (puerto 80 en servidor Linux)
-- `http://<IP_PUBLICA_SERVIDOR>:3000/health` -> Health backend
-
-En desarrollo local con Docker en Windows, el frontend se expone en **http://localhost:8080** (puerto 8080 mapeado al 80 del contenedor).
+En desarrollo local en Windows, si el puerto 80 esta ocupado, copia `docker-compose.override.example.yml` a `docker-compose.override.yml` y el dashboard queda en **http://localhost:8080**.
 
 ## 2) Diseno de arquitectura del sistema
 
@@ -65,7 +63,7 @@ docker compose up -d --build
 docker compose ps
 ```
 
-Dashboard local: http://localhost:8080
+Dashboard local: http://localhost (o http://localhost:8080 con `docker-compose.override.yml` en Windows)
 
 ### Desarrollo sin Docker (opcional)
 
