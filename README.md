@@ -1,11 +1,172 @@
-# proyectoSistemas
+# Proyecto Final - Sistemas Operativos II (UMG)
 
-Proyecto final — Sistemas Operativos II (UMG).
+Sistema de monitoreo de eventos de robotica con arquitectura de tres componentes en contenedores Docker:
 
-Repositorio en construcción. Integrantes: (completar).
+- Backend de logs (Node.js + Express + MongoDB)
+- Base de datos no relacional (MongoDB)
+- Frontend dashboard web (React + Vite + Nginx)
 
-## Estructura
+## 1) Direccion IP publica del servidor
 
-- `backend/` — API y log de eventos
-- `frontend/` — Dashboard web
-- `docs/` — Documentación y diagramas (opcional)
+Reemplazar al desplegar:
+
+- `http://<IP_PUBLICA_SERVIDOR>` -> Frontend (puerto 80 en servidor Linux)
+- `http://<IP_PUBLICA_SERVIDOR>:3000/health` -> Health backend
+
+En desarrollo local con Docker en Windows, el frontend se expone en **http://localhost:8080** (puerto 8080 mapeado al 80 del contenedor).
+
+## 2) Diseno de arquitectura del sistema
+
+Flujo principal:
+
+1. App movil Flutter envia instrucciones al robot Arduino Nano 33 por BLE.
+2. El dashboard/servidor encola comandos para el robot usando `POST /commands`.
+3. La app Flutter (puente BLE) consume comandos con `GET /commands/pending?deviceId=...`, los envia al Arduino y responde con `POST /commands/:id/ack`.
+4. La app Flutter tambien reporta cada instruccion y resultado como evento con `POST /events`.
+5. El backend registra comandos y eventos en MongoDB.
+6. El frontend consulta al backend y muestra dashboard.
+
+Servicios (mismo servidor Linux):
+
+- `umg_frontend` (puerto 80 en produccion; 8080 en local Windows)
+- `umg_backend` (puerto 3000)
+- `umg_mongo` (puerto 27017)
+
+## 3) Tecnologias utilizadas
+
+- Node.js 20 + Express
+- MongoDB 7 + Mongoose
+- React 18 + Vite + Nginx
+- Docker + Docker Compose
+
+## 4) Instrucciones de uso
+
+### Requisitos
+
+- Docker y Docker Compose instalados
+- Puertos 80 (o 8080 en local) y 3000 abiertos en firewall del servidor
+
+### Ejecutar en local o servidor Linux
+
+Desde la raiz del repositorio:
+
+```bash
+docker compose up -d --build
+docker compose ps
+```
+
+Dashboard local: http://localhost:8080
+
+### Desarrollo sin Docker (opcional)
+
+```bash
+cd backend && npm install && npm start
+cd frontend && npm install && npm run dev
+```
+
+El proyecto usa **npm** (`package-lock.json`). Tambien puedes usar **pnpm** en local si lo prefieres (`pnpm install` / `pnpm run build`); los Dockerfiles usan npm por compatibilidad con el lockfile actual del equipo.
+
+### Endpoints backend
+
+- `GET /health` estado de backend y MongoDB
+- `POST /events` registrar evento
+- `GET /events` listar ultimos 200 eventos
+- `GET /events/summary` resumen por fuente y estado
+- `POST /commands` encolar comando para robot
+- `GET /commands/pending?deviceId=arduino_nano_33_01` obtener comandos pendientes para Flutter puente
+- `POST /commands/:id/ack` confirmar ejecucion (`executed`/`failed`) con respuesta del robot
+- `GET /commands` listar comandos recientes
+
+### Ejemplo de evento (lo que debe enviar Flutter)
+
+```json
+{
+  "actionType": "REMINDER_SAVE",
+  "source": "flutter_app",
+  "channel": "ble",
+  "deviceId": "arduino_nano_33_01",
+  "status": "executed",
+  "message": "Recordatorio guardado en robot",
+  "payload": {
+    "command": "REM|12|2026-05-02|16:30|TOMAR AGUA",
+    "robotResponse": "OK|REMINDER_SAVED",
+    "mobileUserId": "u01"
+  },
+  "eventTimestamp": "2026-05-02T16:30:00.000Z"
+}
+```
+
+### Prueba rapida con curl
+
+```bash
+curl -X POST http://localhost:3000/events \
+  -H "Content-Type: application/json" \
+  -d "{\"actionType\":\"TEST\",\"source\":\"flutter_app\",\"channel\":\"ble\",\"deviceId\":\"arduino_nano_33_01\",\"status\":\"executed\",\"message\":\"Prueba manual\",\"payload\":{\"command\":\"TEST\",\"robotResponse\":\"OK|TEST\"}}"
+```
+
+### Flujo de comando remoto (servidor -> Flutter -> Arduino)
+
+1) Encolar comando desde dashboard o curl:
+
+```bash
+curl -X POST http://localhost:3000/commands \
+  -H "Content-Type: application/json" \
+  -d "{\"commandText\":\"TEST\",\"commandType\":\"TEST\",\"targetDeviceId\":\"arduino_nano_33_01\",\"source\":\"dashboard\"}"
+```
+
+2) Flutter consulta pendientes:
+
+```bash
+curl "http://localhost:3000/commands/pending?deviceId=arduino_nano_33_01"
+```
+
+3) Flutter envia el comando por BLE al Arduino y reporta ACK:
+
+```bash
+curl -X POST http://localhost:3000/commands/<COMMAND_ID>/ack \
+  -H "Content-Type: application/json" \
+  -d "{\"status\":\"executed\",\"robotResponse\":\"OK|TEST\",\"executionNotes\":\"Comando ejecutado por BLE\",\"source\":\"flutter_app\"}"
+```
+
+## 5) Demostracion solicitada por el curso
+
+### A. Mostrar servidor Linux y contenedores
+
+```bash
+docker compose ps
+```
+
+### B. Pausar backend y validar que no se registran eventos
+
+```bash
+docker pause umg_backend
+docker unpause umg_backend
+```
+
+Resultado esperado:
+- Flutter no podra reportar eventos al backend mientras este pausado.
+
+### C. Pausar base de datos y validar que se reciben, pero no se almacenan
+
+```bash
+docker pause umg_mongo
+docker unpause umg_mongo
+```
+
+Resultado esperado:
+- `POST /events` responde `202` con `stored: false` cuando Mongo esta no disponible.
+
+### D. Pausar frontend y validar que no se accede al dashboard
+
+```bash
+docker pause umg_frontend
+docker unpause umg_frontend
+```
+
+Resultado esperado:
+- La interfaz web no carga, pero backend y recepcion de eventos siguen activos.
+
+## 6) Colaboracion en GitHub
+
+- Mantener el proyecto en un repositorio publico del grupo.
+- Realizar commits individuales de cada integrante para evidenciar contribucion real.

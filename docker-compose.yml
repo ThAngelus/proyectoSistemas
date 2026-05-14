@@ -1,0 +1,43 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: umg_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - umg_net
+
+  backend:
+    build: ./backend
+    container_name: umg_backend
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    environment:
+      - PORT=3000
+      - MONGO_URI=mongodb://mongo:27017/robot_logs
+    ports:
+      - "3000:3000"
+    networks:
+      - umg_net
+
+  frontend:
+    build: ./frontend
+    container_name: umg_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    networks:
+      - umg_net
+
+volumes:
+  mongo_data:
+
+networks:
+  umg_net:
+    driver: bridge
