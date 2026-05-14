@@ -19,7 +19,6 @@ const eventSchema = new mongoose.Schema(
       type: String,
       default: "unknown"
     },
-    // Sin enum: el hardware puede enviar estados libres sin romper el guardado
     status: {
       type: String,
       default: "unknown"

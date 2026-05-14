@@ -26,7 +26,7 @@ El log central acepta eventos por **dos caminos** (flexibles, no excluyentes):
 Flujo tipico con robot autonomo (sin app):
 
 1. El Arduino ejecuta una accion (comando BLE local, recordatorio, sensor, etc.).
-2. `WiFiEvents` encola y envia `POST /events` al backend.
+2. El firmware del Arduino envia `POST /events` al backend por WiFi.
 3. MongoDB persiste el evento.
 4. El dashboard muestra el log en tiempo casi real.
 
@@ -35,8 +35,6 @@ Flujo con app movil:
 1. Flutter envia instrucciones al robot por BLE.
 2. Flutter tambien puede reportar `POST /events` (o el Arduino lo hace por WiFi en paralelo).
 3. Comandos remotos: dashboard -> `POST /commands` -> Flutter `GET /commands/pending` -> BLE -> `POST /commands/:id/ack`.
-
-Documentacion detallada para el companero de Arduino: `docs/arduino-wifi.md` y plantilla `docs/arduino/WiFiEvents.reference.ino`.
 
 Servicios (mismo servidor Linux):
 
@@ -83,7 +81,7 @@ El proyecto usa **npm** (`package-lock.json`). Tambien puedes usar **pnpm** en l
 - `GET /health` estado de backend y MongoDB
 - `POST /events` registrar evento
 - `GET /events` listar ultimos 200 eventos
-- `GET /events/summary` resumen por fuente y estado
+- `GET /events/summary` total de eventos en base de datos
 - `POST /commands` encolar comando para robot
 - `GET /commands/pending?deviceId=arduino_nano_33_01` obtener comandos pendientes para Flutter puente
 - `POST /commands/:id/ack` confirmar ejecucion (`executed`/`failed`) con respuesta del robot

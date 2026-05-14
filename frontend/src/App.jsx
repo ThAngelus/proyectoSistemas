@@ -63,7 +63,7 @@ export default function App() {
   const apiBaseUrl = useMemo(() => resolveApiBaseUrl(), []);
   const [events, setEvents] = useState([]);
   const [commands, setCommands] = useState([]);
-  const [summary, setSummary] = useState({ total: 0, bySource: [], byStatus: [] });
+  const [eventTotal, setEventTotal] = useState(0);
   const [loadingInicial, setLoadingInicial] = useState(true);
   const [sincronizando, setSincronizando] = useState(false);
   const [error, setError] = useState("");
@@ -136,13 +136,9 @@ export default function App() {
       const res = await fetch(`${apiBaseUrl}/events/summary`);
       if (!res.ok) return;
       const data = await res.json();
-      setSummary({
-        total: data.total || 0,
-        bySource: Array.isArray(data.bySource) ? data.bySource : [],
-        byStatus: Array.isArray(data.byStatus) ? data.byStatus : []
-      });
-    } catch (_err) {
-      /* ignorar en segundo plano */
+      setEventTotal(data.total || 0);
+    } catch {
+      // sin conexion
     }
   }, [apiBaseUrl]);
 
@@ -152,8 +148,8 @@ export default function App() {
       if (!res.ok) return;
       const data = await res.json();
       setCommands(Array.isArray(data) ? data : []);
-    } catch (_err) {
-      /* ignorar */
+    } catch {
+      // sin conexion
     }
   }, [apiBaseUrl]);
 
@@ -316,7 +312,7 @@ export default function App() {
               </div>
               <div className="metric">
                 <div className="metric-label">Eventos (total)</div>
-                <div className="metric-value mono">{summary.total || events.length}</div>
+                <div className="metric-value mono">{eventTotal || events.length}</div>
               </div>
               <div className="metric">
                 <div className="metric-label">Comandos pendientes</div>
@@ -527,9 +523,7 @@ export default function App() {
                       <th>Estado</th>
                       <th>Dispositivo</th>
                       <th>Mensaje</th>
-                      <th title="Información extra guardada con el evento (por ejemplo ID de comando o lecturas)">
-                        Datos adicionales
-                      </th>
+                      <th>Datos adicionales</th>
                     </tr>
                   </thead>
                   <tbody className={sincronizando ? "log-tbody--idle" : ""}>

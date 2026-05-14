@@ -53,7 +53,6 @@ const EVENT_KNOWN_FIELDS = new Set([
   "message",
   "payload",
   "eventTimestamp",
-  // Alias planos que puede enviar el Arduino por WiFi (se mueven a payload)
   "command",
   "robotResponse",
   "cmd",
@@ -167,13 +166,6 @@ app.post("/events", async (req, res) => {
     }
   }
 
-  const basePayload =
-    payload !== undefined && payload !== null && typeof payload === "object" && !Array.isArray(payload)
-      ? { ...payload }
-      : payload !== undefined && payload !== null
-        ? { value: payload }
-        : {};
-
   const eventData = {
     ...extraFields,
     actionType: actionTypeTrimmed,
@@ -182,7 +174,8 @@ app.post("/events", async (req, res) => {
     deviceId: deviceId || "unknown",
     status: status || "unknown",
     message: message !== undefined && message !== null ? String(message) : "",
-    payload: Object.keys(basePayload).length ? basePayload : {},
+    payload:
+      payload && typeof payload === "object" && !Array.isArray(payload) ? payload : {},
     eventTimestamp: eventTimestamp ? new Date(eventTimestamp) : new Date()
   };
 
@@ -238,22 +231,7 @@ app.get("/events/summary", async (_req, res) => {
 
   try {
     const total = await Event.countDocuments();
-
-    const bySource = await Event.aggregate([
-      { $group: { _id: "$source", count: { $sum: 1 } } },
-      { $sort: { count: -1 } }
-    ]);
-
-    const byStatus = await Event.aggregate([
-      { $group: { _id: "$status", count: { $sum: 1 } } },
-      { $sort: { count: -1 } }
-    ]);
-
-    return res.status(200).json({
-      total,
-      bySource,
-      byStatus
-    });
+    return res.status(200).json({ total });
   } catch (error) {
     return res.status(500).json({
       message: "Could not build events summary",
