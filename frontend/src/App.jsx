@@ -56,7 +56,17 @@ const CMD_PRESETS = [
   { label: "STATUS", type: "STATUS", text: "STATUS" },
   { label: "LIST", type: "LIST", text: "LIST" },
   { label: "TXT", type: "TXT", text: "TXT|OTTOBOT_ONLINE" },
-  { label: "WALK", type: "WALK", text: "WALK" }
+  { label: "WALK", type: "WALK", text: "WALK" },
+  { label: "WALK+", type: "WALK_STRONG", text: "WALK_STRONG" },
+  { label: "SHOW_SCAN", type: "SHOW_SCAN", text: "SHOW_SCAN" },
+  { label: "SHOW_CUTE", type: "SHOW_CUTE", text: "SHOW_CUTE" },
+  { label: "SHOW_WIN", type: "SHOW_WIN", text: "SHOW_WIN" },
+  { label: "SHOW_KICK", type: "SHOW_KICK", text: "SHOW_KICK" },
+  { label: "SHOW_BOW", type: "SHOW_BOW", text: "SHOW_BOW" },
+  { label: "SHOW_STOMP", type: "SHOW_STOMP", text: "SHOW_STOMP" },
+  { label: "SHOW_ONE_FOOT", type: "SHOW_ONE_FOOT", text: "SHOW_ONE_FOOT" },
+  { label: "SHOW_FULL", type: "SHOW_FULL", text: "SHOW_FULL" },
+  { label: "SHOW_RANDOM", type: "SHOW_RANDOM", text: "SHOW_RANDOM" }
 ];
 
 export default function App() {

@@ -75,7 +75,16 @@ function inferActionTypeFromCommand(command) {
     STATUS: "ROBOT_STATUS",
     GET_LOGS: "GET_LOGS",
     WALK: "ROBOT_WALK",
-    WALK_STRONG: "ROBOT_WALK_STRONG"
+    WALK_STRONG: "ROBOT_WALK_STRONG",
+    SHOW_SCAN: "SHOW_SCAN",
+    SHOW_CUTE: "SHOW_CUTE",
+    SHOW_WIN: "SHOW_WIN",
+    SHOW_KICK: "SHOW_KICK",
+    SHOW_BOW: "SHOW_BOW",
+    SHOW_STOMP: "SHOW_STOMP",
+    SHOW_ONE_FOOT: "SHOW_ONE_FOOT",
+    SHOW_FULL: "SHOW_FULL",
+    SHOW_RANDOM: "SHOW_RANDOM"
   };
   return map[type] || type || "";
 }
