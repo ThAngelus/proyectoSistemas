@@ -3,8 +3,7 @@ services:
     image: mongo:7
     container_name: umg_mongo
     restart: unless-stopped
-    ports:
-      - "27017:27017"
+    # Sin ports: Mongo solo accesible dentro de la red Docker (backend -> mongo:27017)
     volumes:
       - mongo_data:/data/db
     networks:
